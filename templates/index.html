@@ -137,9 +137,11 @@
 
             document.body.style.backgroundImage = "url('trilobiti.webp')";
 
-            fetch('http://127.0.0.1:5000/quiz?num=10', { 
-                mode: 'cors'  // Doda CORS nastavitve 
-            })
+
+fetch('https://your-deployed-app.render.com/quiz?num=10', {
+    mode: 'cors' // Pomembno!
+});
+                
             .then(response => response.json())
             .then(data => {
                 console.log(data);
