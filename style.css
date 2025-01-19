@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trilobitni Kviz</title>
+    <style>
+        /* Splošne nastavitve */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #4a90e2;
+        }
+
+        #loadQuestionsButton {
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        #loadQuestionsButton:hover {
+            background-color: #357ABD;
+        }
+
+        /* Slog za vprašanja */
+        #quizQuestions {
+            margin-top: 20px;
+            width: 80%;
+            max-width: 600px;
+            text-align: left;
+        }
+
+        .question-container {
+            margin-bottom: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .question-container h3 {
+            font-size: 1.2rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .answerButton {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 5px;
+            font-size: 1rem;
+            width: 100%;
+            text-align: left;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .answerButton:hover {
+            background-color: #e1e1e1;
+        }
+
+        .answerButton.correct {
+            background-color: #4CAF50; /* Zeleno za pravilen odgovor */
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .answerButton.incorrect {
+            background-color: #f44336; /* Rdeče za napačen odgovor */
+            color: white;
+            border-color: #f44336;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Dobrodošli v Trilobitnem Kvizu!</h1>
+    <button id="loadQuestionsButton">Naloži vprašanja</button>
+    <div id="quizQuestions"></div>
+
+    <script>
+        let selectedAnswers = []; // Seznam za shranjevanje izbranih odgovorov
+
+        // Funkcija za nalaganje vprašanj iz Flask API-ja
+        function fetchQuizQuestions() {
+            fetch('http://127.0.0.1:5000/quiz?num=10')
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    const quizContainer = document.getElementById("quizQuestions");
+                    quizContainer.innerHTML = ''; // Počisti vsebino
+                    selectedAnswers = []; // Ponastavi seznam odgovorov
+
+                    data.forEach((question, index) => {
+                        // Izpis vprašanja
+                        const questionElement = document.createElement('div');
+                        questionElement.classList.add('question-container');
+                        questionElement.innerHTML = `
+                            <h3>Vprašanje ${index + 1}: ${question.question}</h3>
+                            <ul>
+                                ${question.options.map((option, idx) => `
+                                    <li><button class="answerButton" data-question-id="${index}" data-answer-id="${idx}" data-correct="${idx === question.correct}">${option}</button></li>
+                                `).join('')}
+                            </ul>
+                        `;
+                        quizContainer.appendChild(questionElement);
+                    });
+                })
+                .catch(error => {
+                    console.error('Napaka pri nalaganju vprašanj:', error);
+                });
+        }
+
+        // Funkcija za izbiro odgovora
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('answerButton')) {
+                const button = event.target;
+                const questionId = button.getAttribute('data-question-id');
+                const answerId = button.getAttribute('data-answer-id');
+                const isCorrect = button.getAttribute('data-correct') === 'true';
+
+                // Obarvaj odgovor takoj po kliku
+                if (isCorrect) {
+                    button.classList.add('correct');
+                } else {
+                    button.classList.add('incorrect');
+                }
+
+                // Shrani izbrani odgovor
+                selectedAnswers[questionId] = parseInt(answerId);
+            }
+        });
+
+        // Dogodek za nalaganje vprašanj
+        document.getElementById("loadQuestionsButton").addEventListener("click", fetchQuizQuestions);
+    </script>
+</body>
+</html>
